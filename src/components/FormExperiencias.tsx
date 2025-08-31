@@ -1,20 +1,15 @@
-
-import { useState } from 'react'
-import type { ChangeEvent } from 'react'
+import { useState, useRef, type ChangeEvent } from 'react'
 import Secao from './Secao'
-import type { Experiencia } from '../types/curriculo'
+import type { DadosCurriculo } from '../types/curriculo'
 
-interface Props {
-  experiencias: Experiencia[]
-  onChange: (lista: Experiencia[]) => void
-}
-
-function id() {
-  return Math.random().toString(36).slice(2, 10)
-}
-
-export default function FormExperiencias({ experiencias, onChange }: Props) {
-  const inicial: Omit<Experiencia, 'id'> = {
+export default function FormExperiencias({
+  experiencias,
+  onChange,
+}: {
+  experiencias: DadosCurriculo['experiencias']
+  onChange: (e: DadosCurriculo['experiencias']) => void
+}) {
+  const inicial = {
     empresa: '',
     cargo: '',
     periodo: '',
@@ -22,6 +17,7 @@ export default function FormExperiencias({ experiencias, onChange }: Props) {
     atual: false,
   }
   const [form, setForm] = useState(inicial)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
   const onInput = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -30,64 +26,111 @@ export default function FormExperiencias({ experiencias, onChange }: Props) {
 
   const adicionar = () => {
     if (!form.empresa.trim() || !form.cargo.trim()) return
-    // Validação simples de período (opcional): "MMM AAAA – MMM AAAA" ou "atual"
-    onChange([...experiencias, { ...form, id: id() }])
+    const novo = { ...form, id: `${Date.now()}-${Math.floor(Math.random() * 10000)}` }
+    onChange([...experiencias, novo])
     setForm(inicial)
+    inputRef.current?.focus()
   }
 
   const remover = (eid: string) => onChange(experiencias.filter(e => e.id !== eid))
 
+  const limparTudo = () => {
+    setForm(inicial)
+    onChange([]) 
+    inputRef.current?.focus()
+  }
+
   return (
     <Secao titulo="Experiências">
-      <input
-        name="empresa"
-        value={form.empresa}
-        onChange={onInput}
-        placeholder="Empresa"
-        className={`w-full border px-3 py-2 rounded ${!form.empresa.trim() ? 'border-red-500' : 'border-gray-300'}`}
-      />
-      <input
-        name="cargo"
-        value={form.cargo}
-        onChange={onInput}
-        placeholder="Cargo"
-        className={`w-full border px-3 py-2 rounded ${!form.cargo.trim() ? 'border-red-500' : 'border-gray-300'}`}
-      />
-      <input
-        name="periodo"
-        value={form.periodo}
-        onChange={onInput}
-        placeholder="Período (ex: Jan 2020 – Atual)"
-        className="w-full border border-gray-300 px-3 py-2 rounded"
-      />
-      <textarea
-        name="descricao"
-        value={form.descricao}
-        onChange={onInput}
-        placeholder="Descrição das atividades"
-        className="w-full border border-gray-300 px-3 py-2 rounded h-24"
-      />
-      <label className="inline-flex items-center">
-        <input type="checkbox" name="atual" checked={form.atual} onChange={onInput} className="mr-2" />
+      <div className="float-group">
+        <input
+          id="empresa"
+          name="empresa"
+          value={form.empresa}
+          onChange={onInput}
+          placeholder=" "
+          ref={inputRef}
+        />
+        <label htmlFor="empresa">Empresa</label>
+      </div>
+
+      <div className="float-group">
+        <input
+          id="cargo"
+          name="cargo"
+          value={form.cargo}
+          onChange={onInput}
+          placeholder=" "
+        />
+        <label htmlFor="cargo">Cargo</label>
+      </div>
+
+      <div className="float-group">
+        <input
+          id="periodo"
+          name="periodo"
+          value={form.periodo}
+          onChange={onInput}
+          placeholder=" "
+        />
+        <label htmlFor="periodo">Período (ex: Jan 2020 – Atual)</label>
+      </div>
+
+      <div className="float-group">
+        <textarea
+          id="descricao"
+          name="descricao"
+          value={form.descricao}
+          onChange={onInput}
+          placeholder=" "
+        />
+        <label htmlFor="descricao">Descrição das atividades</label>
+        <div className="textarea-counter">{form.descricao.length}/600</div>
+      </div>
+
+      <label className="inline-flex items-center mt-2">
+        <input
+          type="checkbox"
+          name="atual"
+          checked={form.atual}
+          onChange={onInput}
+          className="mr-2"
+        />
         Trabalho atual
       </label>
 
-      <button
-        onClick={adicionar}
-        disabled={!form.empresa.trim() || !form.cargo.trim()}
-        className="bg-blue-600 disabled:opacity-40 text-white px-4 py-2 rounded"
-      >
-        Adicionar
-      </button>
+      <div style={{ marginTop: 12, marginBottom: 8, display: 'flex', gap: 8 }}>
+        <button
+          onClick={adicionar}
+          disabled={!form.empresa.trim() || !form.cargo.trim()}
+          className="btn"
+          type="button"
+        >
+          Adicionar
+        </button>
+
+        <button
+          onClick={limparTudo}
+          className="btn ghost"
+          type="button"
+        >
+          Limpar
+        </button>
+      </div>
 
       <ul className="space-y-2">
         {experiencias.map(e => (
-          <li key={e.id} className="flex justify-between items-center border border-gray-200 rounded px-3 py-2">
-            <span>{e.cargo} @ {e.empresa}</span>
-            <button onClick={() => remover(e.id)} className="text-red-600">remover</button>
+          <li key={e.id} className="flex justify-between items-center card">
+            <div>
+              <div style={{ fontWeight: 700 }}>{e.cargo} — {e.empresa}</div>
+              <div className="muted" style={{ marginTop: 4 }}>{e.periodo}{e.atual ? ' (Atual)' : ''}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => remover(e.id)} className="btn ghost" type="button">Remover</button>
+            </div>
           </li>
         ))}
-        {experiencias.length === 0 && <li className="text-gray-400">Nenhuma experiência adicionada.</li>}
+        {experiencias.length === 0 && <li className="muted">Nenhuma experiência adicionada.</li>}
       </ul>
     </Secao>
   )

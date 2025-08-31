@@ -1,65 +1,58 @@
+import { useState, useRef } from 'react'
+import type { DadosCurriculo } from '../types/curriculo'
 
-import { useState } from 'react'
-import Secao from './Secao'
-import type { Habilidade } from '../types/curriculo'
+export default function FormHabilidades({
+  habilidades,
+  onChange,
+}: {
+  habilidades: DadosCurriculo['habilidades']
+  onChange: (h: DadosCurriculo['habilidades']) => void
+}) {
+  const [text, setText] = useState('')
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
-interface Props {
-  habilidades: Habilidade[]
-  onChange: (lista: Habilidade[]) => void
-}
-
-function id() {
-  return Math.random().toString(36).slice(2, 10)
-}
-
-export default function FormHabilidades({ habilidades, onChange }: Props) {
-  const [nome, setNome] = useState('')
-  const [nivel, setNivel] = useState<Habilidade['nivel']>('Básico')
-
-  const adicionar = () => {
-    if (!nome.trim()) return
-    onChange([...habilidades, { id: id(), nome: nome.trim(), nivel }])
-    setNome('')
+  const add = () => {
+    if (!text.trim()) return
+    onChange([...habilidades, text.trim()])
+    setText('')
+    inputRef.current?.focus()
   }
 
-  const remover = (hid: string) => onChange(habilidades.filter(h => h.id !== hid))
+  const limpar = () => {
+    setText('')
+    onChange([]) 
+    inputRef.current?.focus()
+  }
 
   return (
-    <Secao titulo="Habilidades">
-      <div className="flex gap-2">
+    <section className="secao">
+      <h2>Habilidades</h2>
+
+      <div className="float-group input-with-icon">
         <input
-          value={nome}
-          onChange={e => setNome(e.target.value)}
-          placeholder="Habilidade"
-          className="flex-1 border border-gray-300 px-3 py-2 rounded"
+          ref={inputRef}
+          type="text"
+          placeholder=" "
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') add() }}
+          id="nova-habilidade"
         />
-        <select
-          value={nivel}
-          onChange={e => setNivel(e.target.value as Habilidade['nivel'])}
-          className="border border-gray-300 px-3 py-2 rounded"
-        >
-          <option>Básico</option>
-          <option>Intermediário</option>
-          <option>Avançado</option>
-        </select>
-        <button
-          onClick={adicionar}
-          disabled={!nome.trim()}
-          className="bg-blue-600 disabled:opacity-40 text-white px-4 rounded"
-        >
-          +
-        </button>
+        <label htmlFor="nova-habilidade">Adicionar habilidade</label>
       </div>
 
-      <ul className="space-y-2">
-        {habilidades.map(h => (
-          <li key={h.id} className="flex justify-between items-center border border-gray-200 rounded px-3 py-2">
-            <span>{h.nome} ({h.nivel})</span>
-            <button onClick={() => remover(h.id)} className="text-red-600">remover</button>
-          </li>
+      <div style={{ marginTop: 8 }} className="chips">
+        {habilidades.map((h, i) => (
+          <span key={typeof h === 'string' ? `${h}-${i}` : h.id ?? `${i}`} className="chip">
+            {typeof h === 'string' ? h : h.nome}
+          </span>
         ))}
-        {habilidades.length === 0 && <li className="text-gray-400">Nenhuma habilidade adicionada.</li>}
-      </ul>
-    </Secao>
+      </div>
+
+      <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+        <button className="btn" type="button" onClick={add}>Adicionar</button>
+        <button className="btn ghost" type="button" onClick={limpar}>Limpar</button>
+      </div>
+    </section>
   )
 }

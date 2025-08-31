@@ -1,14 +1,14 @@
-
 import type { ChangeEvent } from 'react'
 import Secao from './Secao'
-import type { DadosPessoais } from '../types/curriculo'
+import type { DadosCurriculo } from '../types/curriculo'
 
-interface Props {
-  dados: DadosPessoais
-  onChange: (parte: Partial<DadosPessoais>) => void
-}
-
-export default function FormDadosPessoais({ dados, onChange }: Props) {
+export default function FormDadosPessoais({
+  dados,
+  onChange,
+}: {
+  dados: DadosCurriculo['pessoais']
+  onChange: (p: Partial<DadosCurriculo['pessoais']>) => void
+}) {
   const onInput = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     onChange({ [e.target.name]: e.target.value })
 
@@ -42,46 +42,44 @@ export default function FormDadosPessoais({ dados, onChange }: Props) {
         )}
       </div>
 
-      <input
-        name="nome"
-        value={dados.nome}
-        onChange={onInput}
-        placeholder="Nome completo"
-        className={`w-full border px-3 py-2 rounded ${invalido.nome ? 'border-red-500' : 'border-gray-300'}`}
-      />
-      <input
-        name="email"
-        type="email"
-        value={dados.email}
-        onChange={onInput}
-        placeholder="E-mail"
-        className={`w-full border px-3 py-2 rounded ${invalido.email ? 'border-red-500' : 'border-gray-300'}`}
-      />
-      <input
-        name="telefone"
-        value={dados.telefone}
-        onChange={onInput}
-        placeholder="Telefone"
-        className={`w-full border px-3 py-2 rounded ${invalido.telefone ? 'border-red-500' : 'border-gray-300'}`}
-      />
-      <input
-        name="linkedin"
-        value={dados.linkedin}
-        onChange={onInput}
-        placeholder="LinkedIn (URL)"
-        className={`w-full border px-3 py-2 rounded ${invalido.linkedin ? 'border-red-500' : 'border-gray-300'}`}
-      />
-      <div>
+      <div className="float-group">
+        <input
+          type="text"
+          placeholder=" "
+          value={dados.nome}
+          onChange={e => onChange({ nome: e.target.value })}
+          id="nome"
+          className={`w-full border px-3 py-2 rounded ${invalido.nome ? 'border-red-500' : 'border-gray-300'}`}
+        />
+        <label htmlFor="nome">Nome completo</label>
+      </div>
+
+      <div className="float-group">
+        <input
+          type="email"
+          placeholder=" "
+          value={dados.email}
+          onChange={e => onChange({ email: e.target.value })}
+          id="email"
+          className={`w-full border px-3 py-2 rounded ${invalido.email ? 'border-red-500' : 'border-gray-300'}`}
+        />
+        <label htmlFor="email">E‑mail</label>
+      </div>
+
+      <div className="float-group">
         <textarea
-          name="resumo"
+          placeholder=" "
           value={dados.resumo}
-          onChange={onInput}
-          placeholder="Resumo profissional"
+          onChange={e => onChange({ resumo: e.target.value })}
+          id="resumo"
           className="w-full border border-gray-300 px-3 py-2 rounded h-28"
           maxLength={500}
         />
-        <p className="text-sm text-gray-500">{dados.resumo.length}/500 caracteres</p>
+        <label htmlFor="resumo">Resumo profissional</label>
+        <div className="textarea-counter">{dados.resumo?.length ?? 0}/600</div>
       </div>
+
+      {}
     </Secao>
   )
 }

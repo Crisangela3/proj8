@@ -4,6 +4,7 @@ import FormHabilidades from './components/FormHabilidades'
 import FormExperiencias from './components/FormExperiencias'
 import PreviewCurriculo from './components/PreviewCurriculo'
 import type { DadosCurriculo } from './types/curriculo'
+import './App.css'
 
 export default function App() {
   const [dadosCurriculo, setDadosCurriculo] = useState<DadosCurriculo>({
@@ -22,13 +23,13 @@ export default function App() {
     setDadosCurriculo(prev => ({ ...prev, experiencias: lista }))
 
   return (
-    <div className="h-screen grid grid-cols-2 overflow-hidden">
-      <div className="overflow-y-auto p-6">
+    <div className="app-root h-screen grid grid-cols-2 overflow-hidden">
+      <div className="overflow-y-auto p-6 form-panel">
         <FormDadosPessoais dados={dadosCurriculo.pessoais} onChange={atualizarPessoais} />
         <FormHabilidades habilidades={dadosCurriculo.habilidades} onChange={atualizarHabilidades} />
         <FormExperiencias experiencias={dadosCurriculo.experiencias} onChange={atualizarExperiencias} />
       </div>
-      <div className="overflow-y-auto p-6 bg-gray-50">
+      <div className="overflow-y-auto p-6 preview-panel">
         <PreviewCurriculo dados={dadosCurriculo} />
       </div>
     </div>
