@@ -2,6 +2,12 @@ import { useState, useRef, type ChangeEvent } from 'react'
 import Secao from './Secao'
 import type { DadosCurriculo } from '../types/curriculo'
 
+/*
+  FormExperiencias
+  - Form para adicionar experiências (empresa, cargo, período, descrição, atual).
+  - Mantém um formulário interno (state `form`) e permite adicionar/remover/limpar.
+  - Gera id simples para cada experiência adicionada.
+*/
 export default function FormExperiencias({
   experiencias,
   onChange,
@@ -19,11 +25,13 @@ export default function FormExperiencias({
   const [form, setForm] = useState(inicial)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
+  // Handler genérico para inputs e textarea do formulário
   const onInput = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
     setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value }))
   }
 
+  // Adiciona nova experiência com id
   const adicionar = () => {
     if (!form.empresa.trim() || !form.cargo.trim()) return
     const novo = { ...form, id: `${Date.now()}-${Math.floor(Math.random() * 10000)}` }
@@ -32,90 +40,50 @@ export default function FormExperiencias({
     inputRef.current?.focus()
   }
 
+  // Remove uma experiência pelo id
   const remover = (eid: string) => onChange(experiencias.filter(e => e.id !== eid))
 
+  // Limpa todas as experiências e reseta o formulário
   const limparTudo = () => {
     setForm(inicial)
-    onChange([]) 
+    onChange([])
     inputRef.current?.focus()
   }
 
   return (
     <Secao titulo="Experiências">
       <div className="float-group">
-        <input
-          id="empresa"
-          name="empresa"
-          value={form.empresa}
-          onChange={onInput}
-          placeholder=" "
-          ref={inputRef}
-        />
+        <input id="empresa" name="empresa" value={form.empresa} onChange={onInput} placeholder=" " ref={inputRef} />
         <label htmlFor="empresa">Empresa</label>
       </div>
 
       <div className="float-group">
-        <input
-          id="cargo"
-          name="cargo"
-          value={form.cargo}
-          onChange={onInput}
-          placeholder=" "
-        />
+        <input id="cargo" name="cargo" value={form.cargo} onChange={onInput} placeholder=" " />
         <label htmlFor="cargo">Cargo</label>
       </div>
 
       <div className="float-group">
-        <input
-          id="periodo"
-          name="periodo"
-          value={form.periodo}
-          onChange={onInput}
-          placeholder=" "
-        />
+        <input id="periodo" name="periodo" value={form.periodo} onChange={onInput} placeholder=" " />
         <label htmlFor="periodo">Período (ex: Jan 2020 – Atual)</label>
       </div>
 
       <div className="float-group">
-        <textarea
-          id="descricao"
-          name="descricao"
-          value={form.descricao}
-          onChange={onInput}
-          placeholder=" "
-        />
+        <textarea id="descricao" name="descricao" value={form.descricao} onChange={onInput} placeholder=" " />
         <label htmlFor="descricao">Descrição das atividades</label>
         <div className="textarea-counter">{form.descricao.length}/600</div>
       </div>
 
       <label className="inline-flex items-center mt-2">
-        <input
-          type="checkbox"
-          name="atual"
-          checked={form.atual}
-          onChange={onInput}
-          className="mr-2"
-        />
+        <input type="checkbox" name="atual" checked={form.atual} onChange={onInput} className="mr-2" />
         Trabalho atual
       </label>
 
       <div style={{ marginTop: 12, marginBottom: 8, display: 'flex', gap: 8 }}>
-        <button
-          onClick={adicionar}
-          disabled={!form.empresa.trim() || !form.cargo.trim()}
-          className="btn"
-          type="button"
-        >
+        <button onClick={adicionar} disabled={!form.empresa.trim() || !form.cargo.trim()} className="btn" type="button">
           Adicionar
         </button>
 
-        <button
-          onClick={limparTudo}
-          className="btn ghost"
-          type="button"
-        >
-          Limpar
-        </button>
+        <button onClick={limparTudo} className="btn ghost" type="button">Limpar</button>
       </div>
 
       <ul className="space-y-2">

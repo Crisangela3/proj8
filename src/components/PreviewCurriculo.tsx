@@ -1,5 +1,11 @@
 import type { DadosCurriculo } from '../types/curriculo'
 
+/*
+  PreviewCurriculo
+  - Recebe `dados` e renderiza o currículo em formato legível.
+  - Trata ambos formatos para habilidades (string ou objeto).
+  - Organiza experiências exibindo título, período e descrição.
+*/
 interface Props { dados: DadosCurriculo }
 
 export default function PreviewCurriculo({ dados }: Props) {
