@@ -1,23 +1,27 @@
 import type { DadosCurriculo } from '../types/curriculo'
 
+/*
+  PreviewCurriculo
+  - Recebe `dados` e renderiza o currículo em formato legível.
+  - Trata ambos formatos para habilidades (string ou objeto).
+  - Organiza experiências exibindo título, período e descrição.
+*/
 interface Props { dados: DadosCurriculo }
 
 export default function PreviewCurriculo({ dados }: Props) {
   const { pessoais, habilidades, experiencias } = dados
 
   return (
-    <div className="mx-auto max-w-3xl bg-white shadow-sm border border-gray-200 p-8">
-      <header className="flex items-center gap-6 pb-6 border-b">
+    <div className="preview-root">
+      <header className="preview-header">
         {pessoais.fotoUrl ? (
-          <img src={pessoais.fotoUrl} alt="Foto de perfil" className="w-24 h-24 rounded-full object-cover" />
+          <img src={pessoais.fotoUrl} alt="Foto de perfil" className="preview-avatar" />
         ) : (
-          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-            Foto
-          </div>
+          <div className="preview-avatar">Foto</div>
         )}
         <div>
-          <h1 className="text-3xl font-bold">{pessoais.nome || 'Seu Nome'}</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="preview-name">{pessoais.nome || 'Seu Nome'}</h1>
+          <p className="preview-role">
             {pessoais.email || 'seu@email'}
             {pessoais.telefone ? ` • ${pessoais.telefone}` : ''}
             {pessoais.linkedin ? ` • ${pessoais.linkedin}` : ''}
@@ -25,40 +29,50 @@ export default function PreviewCurriculo({ dados }: Props) {
         </div>
       </header>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700">Perfil Profissional</h2>
-        <p className={`mt-2 ${pessoais.resumo ? '' : 'text-gray-400 italic'}`}>
+      <section className="preview-section">
+        <h2>Perfil Profissional</h2>
+        <p className={pessoais.resumo ? '' : 'muted'}>
           {pessoais.resumo || 'Seu resumo aparecerá aqui...'}
         </p>
       </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700">Habilidades</h2>
+      <section className="preview-section">
+        <h2>Habilidades</h2>
         {habilidades.length ? (
-          <ul className="grid grid-cols-2 mt-2 list-disc ml-5 gap-y-1">
-            {habilidades.map(h => <li key={h.id}>{h.nome} — {h.nivel}</li>)}
+          <ul className="mt-2 list-disc ml-5">
+            {habilidades.map((h, i) => {
+              const nome = typeof h === 'string' ? h : h.nome ?? ''
+              const nivel = typeof h === 'string' ? undefined : h.nivel
+              const key = typeof h === 'string' ? `${nome}-${i}` : h.id ?? `${nome}-${i}`
+              return (
+                <li key={key}>
+                  <span>{nome}</span>
+                  {nivel ? <span className="muted"> — {nivel}</span> : null}
+                </li>
+              )
+            })}
           </ul>
         ) : (
-          <p className="mt-2 text-gray-400 italic">Nenhuma habilidade adicionada.</p>
+          <p className="muted">Nenhuma habilidade adicionada.</p>
         )}
       </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700">Experiência Profissional</h2>
+      <section className="preview-section">
+        <h2>Experiência Profissional</h2>
         {experiencias.length ? (
           <div className="mt-2 space-y-4">
             {experiencias.map(e => (
-              <div key={e.id}>
-                <div className="flex justify-between">
-                  <h3 className="font-semibold">{e.cargo} — {e.empresa}</h3>
-                  <span className="text-sm text-gray-600">{e.periodo}{e.atual ? ' (Atual)' : ''}</span>
+              <div key={e.id} className="preview-item">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <h3 style={{ margin: 0 }}>{e.cargo} — {e.empresa}</h3>
+                  <span className="muted">{e.periodo}{e.atual ? ' (Atual)' : ''}</span>
                 </div>
-                <p className="text-sm">{e.descricao}</p>
+                <p className="muted" style={{ marginTop: 6 }}>{e.descricao}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-2 text-gray-400 italic">Nenhuma experiência adicionada.</p>
+          <p className="muted">Nenhuma experiência adicionada.</p>
         )}
       </section>
     </div>

@@ -1,10 +1,15 @@
 import type { PropsWithChildren } from 'react'
 
-export default function Secao({ children, titulo }: PropsWithChildren<{ titulo: string }>) {
+/*
+  Secao
+  - Componente wrapper simples para reutilizar estilo de seção/card.
+  - Recebe `titulo` e children; mantém markup consistente entre formulários.
+*/
+export default function Secao({ titulo, children }: { titulo: string; children?: React.ReactNode }) {
   return (
-    <section className="space-y-4 mt-8 first:mt-0">
-      <h2 className="text-xl font-semibold">{titulo}</h2>
-      {children}
+    <section className="secao">
+      <h2>{titulo}</h2>
+      <div>{children}</div>
     </section>
   )
 }
