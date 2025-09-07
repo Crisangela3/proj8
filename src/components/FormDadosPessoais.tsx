@@ -68,6 +68,32 @@ export default function FormDadosPessoais({
         <label htmlFor="nome">Nome completo</label>
       </div>
 
+      <div className="float-group">
+        <input
+          type="telefone"
+          name="telefone"
+          placeholder=" "
+          value={dados.telefone}
+          onChange={e => onChange({ telefone: e.target.value })}
+          id="telefone"
+          className={`w-full border px-3 py-2 rounded ${invalido.email ? 'border-red-500' : 'border-gray-300'}`}
+        />
+        <label htmlFor="telefone">Telefone</label>
+      </div>
+
+      <div className="float-group">
+        <input
+          type="linkdin"
+          name="linkdin"
+          placeholder=" "
+          value={dados.linkedin}
+          onChange={e => onChange({ linkedin: e.target.value })}
+          id="linkdin"
+          className={`w-full border px-3 py-2 rounded ${invalido.email ? 'border-red-500' : 'border-gray-300'}`}
+        />
+        <label htmlFor="linkdin">LinkdIn</label>
+      </div>
+
       {/* Campo: E-mail (validação simples via invalido.email) */}
       <div className="float-group">
         <input

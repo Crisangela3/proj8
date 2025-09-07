@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import type { DadosCurriculo } from '../types/curriculo'
+import type { DadosCurriculo, Habilidade } from '../types/curriculo'
 
 /*
   FormHabilidades
@@ -15,12 +15,18 @@ export default function FormHabilidades({
   onChange: (h: DadosCurriculo['habilidades']) => void
 }) {
   const [text, setText] = useState('')
+  const [nivel, setNivel] = useState<Habilidade['nivel']>('Intermediário')
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   // Adiciona a habilidade atual (string) à lista
-  const add = () => {
+ const add = () => {
     if (!text.trim()) return
-    onChange([...habilidades, text.trim()])
+    const novaHabilidade: Habilidade = {
+      id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      nome: text.trim(),
+      nivel,
+    }
+    onChange([...habilidades, novaHabilidade])
     setText('')
     inputRef.current?.focus()
   }
@@ -48,6 +54,25 @@ export default function FormHabilidades({
           id="nova-habilidade"
         />
         <label htmlFor="nova-habilidade">Adicionar habilidade</label>
+      </div>
+
+{/* Select para nível da habilidade */}
+      <div className="float-group">
+        <select value={nivel} onChange={e => setNivel(e.target.value as Habilidade['nivel'])}>
+          <option value="Básico">Básico</option>
+          <option value="Intermediário">Intermediário</option>
+          <option value="Avançado">Avançado</option>
+        </select>
+        <label>Nível</label>
+      </div>
+
+      {/* Chips com nome e nível */}
+      <div style={{ marginTop: 8 }} className="chips">
+        {habilidades.map(h => (
+          <span key={h.id} className="chip">
+            {h.nome} — <span className="muted">{h.nivel}</span>
+          </span>
+        ))}
       </div>
 
       {/* Chips: exibe a lista atual de habilidades */}
