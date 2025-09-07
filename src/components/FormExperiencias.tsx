@@ -1,13 +1,8 @@
 import { useState, useRef, type ChangeEvent } from 'react'
 import Secao from './Secao'
 import type { DadosCurriculo } from '../types/curriculo'
+import { melhorarTextoComIA } from '../services/gemini' // 1. Importa a função da IA
 
-/*
-  FormExperiencias
-  - Form para adicionar experiências (empresa, cargo, período, descrição, atual).
-  - Mantém um formulário interno (state `form`) e permite adicionar/remover/limpar.
-  - Gera id simples para cada experiência adicionada.
-*/
 export default function FormExperiencias({
   experiencias,
   onChange,
@@ -15,35 +10,37 @@ export default function FormExperiencias({
   experiencias: DadosCurriculo['experiencias']
   onChange: (e: DadosCurriculo['experiencias']) => void
 }) {
-  const inicial = {
-    empresa: '',
-    cargo: '',
-    periodo: '',
-    descricao: '',
-    atual: false,
-  }
+  const inicial = { empresa: '', cargo: '', periodo: '', descricao: '', atual: false }
   const [form, setForm] = useState(inicial)
   const inputRef = useRef<HTMLInputElement | null>(null)
+  // 2. Estado para controlar o carregamento da IA
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Handler genérico para inputs e textarea do formulário
   const onInput = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
     setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value }))
   }
 
-  // Adiciona nova experiência com id
+  // 3. Função que chama a IA para melhorar a descrição
+  const melhorarDescricao = async () => {
+    if (!form.descricao || isLoading) return
+    setIsLoading(true)
+    try {
+      const textoMelhorado = await melhorarTextoComIA('descricao', form.descricao)
+      setForm(prev => ({ ...prev, descricao: textoMelhorado }))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const adicionar = () => {
     if (!form.empresa.trim() || !form.cargo.trim()) return
-    const novo = { ...form, id: `${Date.now()}-${Math.floor(Math.random() * 10000)}` }
-    onChange([...experiencias, novo])
+    onChange([...experiencias, { ...form, id: `${Date.now()}` }])
     setForm(inicial)
     inputRef.current?.focus()
   }
 
-  // Remove uma experiência pelo id
   const remover = (eid: string) => onChange(experiencias.filter(e => e.id !== eid))
-
-  // Limpa todas as experiências e reseta o formulário
   const limparTudo = () => {
     setForm(inicial)
     onChange([])
@@ -52,25 +49,35 @@ export default function FormExperiencias({
 
   return (
     <Secao titulo="Experiências">
+      {/* Campos Empresa, Cargo, Período (sem alterações) */}
       <div className="float-group">
         <input id="empresa" name="empresa" value={form.empresa} onChange={onInput} placeholder=" " ref={inputRef} />
         <label htmlFor="empresa">Empresa</label>
       </div>
-
       <div className="float-group">
         <input id="cargo" name="cargo" value={form.cargo} onChange={onInput} placeholder=" " />
         <label htmlFor="cargo">Cargo</label>
       </div>
-
       <div className="float-group">
         <input id="periodo" name="periodo" value={form.periodo} onChange={onInput} placeholder=" " />
         <label htmlFor="periodo">Período (ex: Jan 2020 – Atual)</label>
       </div>
 
-      <div className="float-group">
+      {/* 4. Campo de Descrição com o novo botão "Melhorar" */}
+      <div className="float-group relative">
         <textarea id="descricao" name="descricao" value={form.descricao} onChange={onInput} placeholder=" " />
         <label htmlFor="descricao">Descrição das atividades</label>
-        <div className="textarea-counter">{form.descricao.length}/600</div>
+        <div className="textarea-footer">
+          <button
+            type="button"
+            onClick={melhorarDescricao}
+            disabled={isLoading || !form.descricao}
+            className="btn-melhorar"
+          >
+            {isLoading ? 'Melhorando...' : '✨ Melhorar com IA'}
+          </button>
+          <div className="textarea-counter">{form.descricao.length}/600</div>
+        </div>
       </div>
 
       <label className="inline-flex items-center mt-2">
@@ -82,8 +89,9 @@ export default function FormExperiencias({
         <button onClick={adicionar} disabled={!form.empresa.trim() || !form.cargo.trim()} className="btn" type="button">
           Adicionar
         </button>
-
-        <button onClick={limparTudo} className="btn ghost" type="button">Limpar</button>
+        <button onClick={limparTudo} className="btn ghost" type="button">
+          Limpar
+        </button>
       </div>
 
       <ul className="space-y-2">
@@ -93,9 +101,7 @@ export default function FormExperiencias({
               <div style={{ fontWeight: 700 }}>{e.cargo} — {e.empresa}</div>
               <div className="muted" style={{ marginTop: 4 }}>{e.periodo}{e.atual ? ' (Atual)' : ''}</div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => remover(e.id)} className="btn ghost" type="button">Remover</button>
-            </div>
+            <button onClick={() => remover(e.id)} className="btn ghost" type="button">Remover</button>
           </li>
         ))}
         {experiencias.length === 0 && <li className="muted">Nenhuma experiência adicionada.</li>}
