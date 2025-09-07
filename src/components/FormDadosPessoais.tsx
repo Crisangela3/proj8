@@ -1,60 +1,65 @@
-import type { ChangeEvent } from 'react'
-import Secao from './Secao'
-import type { DadosCurriculo } from '../types/curriculo'
+import { useState, type ChangeEvent } from 'react';
+import Secao from './Secao';
+import type { DadosCurriculo } from '../types/curriculo';
+import { melhorarTextoComIA } from '../services/gemini';
 
-/*
-  Componente: FormDadosPessoais
-  - Recebe dados pessoais via props e notifica alterações através de onChange.
-  - Cada bloco abaixo tem um comentário explicando sua responsabilidade.
-*/
 export default function FormDadosPessoais({
   dados,
   onChange,
 }: {
-  dados: DadosCurriculo['pessoais']
-  onChange: (p: Partial<DadosCurriculo['pessoais']>) => void
+  dados: DadosCurriculo['pessoais'];
+  onChange: (p: Partial<DadosCurriculo['pessoais']>) => void;
 }) {
-  // onInput: handler genérico para inputs/textarea que propaga a alteração ao pai.
-  const onInput = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    onChange({ [e.target.name]: e.target.value })
+  const [isLoading, setIsLoading] = useState(false);
 
-  // onUpload: lê o arquivo selecionado, cria um object URL para preview e envia fotoUrl.
   const onUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    const arquivo = e.target.files?.[0]
-    if (!arquivo) return
-    const url = URL.createObjectURL(arquivo)
-    onChange({ fotoUrl: url })
-  }
+    const arquivo = e.target.files?.[0];
+    if (!arquivo) return;
+    const url = URL.createObjectURL(arquivo);
+    onChange({ fotoUrl: url });
+  };
 
-  // invalido: objeto com flags simples de validação (útil para mostrar bordas/vermelho).
+  const melhorarResumo = async () => {
+    if (!dados.resumo?.trim() || isLoading) return;
+    setIsLoading(true);
+    try {
+      const textoMelhorado = await melhorarTextoComIA('resumo', dados.resumo);
+      onChange({ resumo: textoMelhorado });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const invalido = {
     nome: !dados.nome.trim(),
     email: !/^\S+@\S+\.\S+$/.test(dados.email || ''),
     telefone: !dados.telefone.trim(),
     linkedin: !dados.linkedin.trim(),
-  }
+  };
 
   return (
-    // Secao: wrapper reutilizável que agrupa os campos de "Dados Pessoais"
     <Secao titulo="Dados Pessoais">
-      {/* Foto de perfil: upload + preview */}
+      {/* Foto de perfil */}
       <div className="flex items-center gap-4">
         <div>
           <label className="block text-sm text-gray-600 mb-1">Foto de perfil</label>
           <input type="file" accept="image/*" onChange={onUpload} className="text-sm" />
         </div>
-
-        {/* Mostra a foto ou um placeholder se não houver foto */}
         {dados.fotoUrl ? (
-          <img src={dados.fotoUrl} alt="Foto de perfil" className="w-20 h-20 rounded-full object-cover" />
+          // --- ALTERAÇÃO AQUI: Tamanho e estilo da imagem ---
+          <img
+            src={dados.fotoUrl}
+            alt="Foto de perfil"
+            className="w-[100px] h-[100px] rounded-full object-cover border border-gray-300"
+          />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+          <div className="w-[100px] h-[100px] rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs border border-gray-300">
             Sem foto
           </div>
         )}
       </div>
 
-      {/* Campo: Nome completo (floating label + validação visual) */}
+      {/* Nome, Telefone, LinkedIn, E-mail (sem alterações aqui) */}
       <div className="float-group">
         <input
           type="text"
@@ -67,34 +72,30 @@ export default function FormDadosPessoais({
         />
         <label htmlFor="nome">Nome completo</label>
       </div>
-
       <div className="float-group">
         <input
-          type="telefone"
+          type="tel"
           name="telefone"
           placeholder=" "
           value={dados.telefone}
           onChange={e => onChange({ telefone: e.target.value })}
           id="telefone"
-          className={`w-full border px-3 py-2 rounded ${invalido.email ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full border px-3 py-2 rounded ${invalido.telefone ? 'border-red-500' : 'border-gray-300'}`}
         />
         <label htmlFor="telefone">Telefone</label>
       </div>
-
       <div className="float-group">
         <input
-          type="linkdin"
-          name="linkdin"
+          type="text"
+          name="linkedin"
           placeholder=" "
           value={dados.linkedin}
           onChange={e => onChange({ linkedin: e.target.value })}
-          id="linkdin"
-          className={`w-full border px-3 py-2 rounded ${invalido.email ? 'border-red-500' : 'border-gray-300'}`}
+          id="linkedin"
+          className={`w-full border px-3 py-2 rounded ${invalido.linkedin ? 'border-red-500' : 'border-gray-300'}`}
         />
-        <label htmlFor="linkdin">LinkdIn</label>
+        <label htmlFor="linkedin">LinkedIn</label>
       </div>
-
-      {/* Campo: E-mail (validação simples via invalido.email) */}
       <div className="float-group">
         <input
           type="email"
@@ -108,23 +109,30 @@ export default function FormDadosPessoais({
         <label htmlFor="email">E‑mail</label>
       </div>
 
-      {/* Campo: Resumo profissional (textarea com contador de caracteres) */}
-      <div className="float-group">
+      {/* Campo de Resumo (sem alterações aqui) */}
+      <div className="float-group relative">
         <textarea
           name="resumo"
           placeholder=" "
-          value={dados.resumo}
+          value={dados.resumo || ''}
           onChange={e => onChange({ resumo: e.target.value })}
           id="resumo"
           className="w-full border border-gray-300 px-3 py-2 rounded h-28"
-          maxLength={500}
+          maxLength={600}
         />
         <label htmlFor="resumo">Resumo profissional</label>
-        <div className="textarea-counter">{dados.resumo?.length ?? 0}/600</div>
+        <div className="textarea-footer">
+          <button
+            type="button"
+            onClick={melhorarResumo}
+            disabled={isLoading || !dados.resumo?.trim()}
+            className="btn-melhorar"
+          >
+            {isLoading ? 'Melhorando...' : '✨ Melhorar com IA'}
+          </button>
+          <div className="textarea-counter">{dados.resumo?.length ?? 0}/600</div>
+        </div>
       </div>
-
-      {/* Espaço reservado para outros campos (telefone, linkedin, etc.) */}
-      {}
     </Secao>
-  )
+  );
 }
